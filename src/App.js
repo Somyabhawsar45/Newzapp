@@ -6,17 +6,16 @@ import SavedArticles from './components/SavedArticles';
 import { BrowserRouter as Router, Routes, Route, useParams } from "react-router-dom";
 import LoadingBar from 'react-top-loading-bar'
 
-const SearchResults = ({ setProgress, apiKey, pageSize, savedArticles, toggleBookmark }) => {
+const SearchResults = ({ setProgress, pageSize, savedArticles, toggleBookmark }) => {
   const { query } = useParams();
   return (
-    <News setProgress={setProgress} apiKey={apiKey} key={`search-${query}`}
+    <News setProgress={setProgress} key={`search-${query}`}
       pageSize={pageSize} query={query} savedArticles={savedArticles} toggleBookmark={toggleBookmark} />
   );
 };
 
 const App = () => {
   const pageSize = 5;
-  const apiKey = '6d9837dfb0ba4624b1bb66888e2d62e3';
   const [progress, setProgress] = useState(0);
   const [savedArticles, setSavedArticles] = useState(
     () => JSON.parse(localStorage.getItem('savedArticles') || '[]')
@@ -31,8 +30,7 @@ const App = () => {
     });
   };
 
-  const newsProps = { setProgress, apiKey, pageSize, savedArticles, toggleBookmark };
-
+const newsProps = { setProgress, pageSize, savedArticles, toggleBookmark };
   return (
     <div>
       <Router>
@@ -47,8 +45,7 @@ const App = () => {
           <Route path="/science" element={<News {...newsProps} key="science" category="science" />} />
           <Route path="/sports" element={<News {...newsProps} key="sports" category="sports" />} />
           <Route path="/technology" element={<News {...newsProps} key="technology" category="technology" />} />
-          <Route path="/search/:query" element={<SearchResults setProgress={setProgress} apiKey={apiKey} pageSize={pageSize} savedArticles={savedArticles} toggleBookmark={toggleBookmark} />} />
-          <Route path="/saved" element={<SavedArticles savedArticles={savedArticles} toggleBookmark={toggleBookmark} />} />
+<Route path="/search/:query" element={<SearchResults setProgress={setProgress} pageSize={pageSize} savedArticles={savedArticles} toggleBookmark={toggleBookmark} />} />          <Route path="/saved" element={<SavedArticles savedArticles={savedArticles} toggleBookmark={toggleBookmark} />} />
         </Routes>
       </Router>
     </div>

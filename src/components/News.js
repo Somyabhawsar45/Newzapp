@@ -14,13 +14,12 @@ const News = (props) => {
     const capitalizeFirstLetter = (string) =>
         string.charAt(0).toUpperCase() + string.slice(1);
 
-    const buildUrl = (pageNum) => {
-        if (props.query && props.query.trim() !== '') {
-            return `https://newsapi.org/v2/everything?q=${encodeURIComponent(props.query)}&apiKey=6d9837dfb0ba4624b1bb66888e2d62e3&page=${pageNum}&pageSize=${props.pageSize}`;
-        }
-        return `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=6d9837dfb0ba4624b1bb66888e2d62e3&page=${pageNum}&pageSize=${props.pageSize}`;
-    };
-
+const buildUrl = (pageNum) => {
+    if (props.query && props.query.trim() !== '') {
+        return `/api/news?q=${encodeURIComponent(props.query)}&page=${pageNum}&pageSize=${props.pageSize}`;
+    }
+    return `/api/news?country=${props.country}&category=${props.category}&page=${pageNum}&pageSize=${props.pageSize}`;
+};
     const updateNews = async () => {
         props.setProgress(10);
         setError(false);
@@ -136,16 +135,10 @@ News.propTypes = {
     pageSize: PropTypes.number,
     category: PropTypes.string,
     query: PropTypes.string,
-    apiKey: PropTypes.string.isRequired,
     setProgress: PropTypes.func.isRequired,
     savedArticles: PropTypes.array,
     toggleBookmark: PropTypes.func,
 };
-const buildUrl = (pageNum) => {
-    if (props.query && props.query.trim() !== '') {
-        return `https://newsapi.org/v2/everything?q=${encodeURIComponent(props.query)}&apiKey=${props.apiKey}&page=${pageNum}&pageSize=${props.pageSize}`;
-    }
-    return `https://newsapi.org/v2/top-headlines?country=us&category=${props.category}&apiKey=${props.apiKey}&page=${pageNum}&pageSize=${props.pageSize}`;
-};
+
 
 export default News;
