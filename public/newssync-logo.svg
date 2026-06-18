@@ -1,0 +1,25 @@
+<svg width="512" height="512" viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="globeFill" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="#3b82f6"/>
+<stop offset="100%" stop-color="#1d4ed8"/>
+</linearGradient>
+</defs>
+
+<circle cx="340" cy="180" r="120" fill="url(#globeFill)"/>
+
+<ellipse cx="340" cy="180" rx="120" ry="40" fill="none" stroke="#bfdbfe" stroke-width="3" opacity="0.85"/>
+<ellipse cx="340" cy="180" rx="60" ry="118" fill="none" stroke="#bfdbfe" stroke-width="3" opacity="0.85"/>
+<line x1="220" y1="180" x2="460" y2="180" stroke="#bfdbfe" stroke-width="3" opacity="0.85"/>
+<line x1="340" y1="60" x2="340" y2="300" stroke="#bfdbfe" stroke-width="3" opacity="0.85"/>
+
+<path d="M 250 240 Q 300 270 340 260 Q 380 250 420 270" fill="none" stroke="#eff6ff" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+<path d="M 260 130 Q 310 110 340 120 Q 380 135 410 115" fill="none" stroke="#eff6ff" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+
+<g transform="translate(440,70)">
+<circle cx="0" cy="0" r="34" fill="#0c4a6e"/>
+<path d="M -16 8 A 18 18 0 0 1 16 8" fill="none" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round"/>
+<path d="M -10 12 A 11 11 0 0 1 10 12" fill="none" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round"/>
+<circle cx="0" cy="14" r="3" fill="#7dd3fc"/>
+</g>
+</svg>
