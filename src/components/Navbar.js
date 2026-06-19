@@ -7,6 +7,16 @@ const BookmarkIcon = ({ filled }) => (
   </svg>
 );
 
+// Add this custom hook at top of Navbar.js
+const useDebounce = (value, delay) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer); // cleanup on every keystroke
+  }, [value, delay]);
+  return debounced;
+};
+
 const PRIMARY_LINKS = [
   { path: '/', label: 'Home' },
   { path: '/business', label: 'Business' },
@@ -23,11 +33,20 @@ const MORE_LINKS = [
 
 const NavBar = ({ savedCount }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [darkMode, setDarkMode] = useState(localStorage.getItem('darkMode') === 'true');
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  // Inside NavBar component:
+
+useEffect(() => {
+  if (debouncedSearch.trim()) {
+    navigate(`/search/${encodeURIComponent(debouncedSearch.trim())}`);
+  }
+}, [debouncedSearch]);
+
 
   useEffect(() => {
     document.body.classList.toggle('dark-mode', darkMode);
@@ -44,13 +63,6 @@ const NavBar = ({ savedCount }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/search/${encodeURIComponent(searchTerm.trim())}`);
-      setSearchTerm("");
-    }
-  };
 
   const isActive = (path) => location.pathname === path;
   const isMoreActive = MORE_LINKS.some(l => isActive(l.path));
@@ -100,7 +112,7 @@ color: active ? 'var(--nh-accent)' : 'var(--nh-text-muted)',
               <button
                 onClick={() => setMoreOpen(o => !o)}
                 className="nav-link px-1 btn btn-link"
-                style={{ ...linkStyle(isMoreActive), border: 'none', background: 'none' }}
+style={{ ...linkStyle(isMoreActive), borderBottom: 'none', background: 'none', padding: 0 }}
               >
                 More {moreOpen ? '▴' : '▾'}
               </button>
@@ -154,7 +166,7 @@ color: active ? 'var(--nh-accent)' : 'var(--nh-text-muted)',
           </ul>
 
           <div className="d-flex align-items-center gap-2">
-            <form className="nh-search-form" onSubmit={handleSearch}>
+            <form className="nh-search-form" >
               <span className="nh-search-icon">🔍</span>
               <input
                 className="nh-search-input"

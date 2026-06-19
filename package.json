@@ -2,8 +2,12 @@
   "name": "harry",
   "version": "1.0.0",
   "main": "index.js",
+  "proxy": "http://localhost:5000",
   "scripts": {
     "start": "react-scripts start",
+      "build": "react-scripts build",
+    "server": "node server.js",
+    "dev": "concurrently \"npm run server\" \"npm start\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,6 +15,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-infinite-scroll-component": "^6.1.0",
@@ -32,6 +39,7 @@
     ]
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "webpack": "^5.97.1",
     "webpack-dev-server": "^5.2.0"
   }

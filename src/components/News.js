@@ -53,19 +53,26 @@ const buildUrl = (pageNum) => {
         // eslint-disable-next-line
     }, [props.query, props.category]);
 
-    const fetchMoreData = async () => {
-        const nextPage = page + 1;
-        const url = buildUrl(nextPage);
-        setPage(nextPage);
-        try {
-            const data = await fetch(url);
-            const parsedData = await data.json();
-            setArticles(articles.concat(parsedData.articles || []));
-            setTotalResults(parsedData.totalResults || 0);
-        } catch (err) {
-            // silently ignore
-        }
-    };
+   const fetchMoreData = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const nextPage = page + 1;
+    const url = buildUrl(nextPage);
+    setPage(nextPage);
+    try {
+        const data = await fetch(url);
+        const parsedData = await data.json();
+        if (parsedData.status === 'error') return;
+        
+        // Filter out duplicates before adding
+        const existingUrls = new Set(articles.map(a => a.url));
+        const newArticles = (parsedData.articles || []).filter(a => !existingUrls.has(a.url));
+        
+        setArticles(prev => [...prev, ...newArticles]);
+        setTotalResults(parsedData.totalResults || 0);
+    } catch (err) {
+        // silently ignore
+    }
+};
 
     return (
         <>
