@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-
 const BookmarkIcon = ({ filled }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
@@ -7,7 +6,7 @@ const BookmarkIcon = ({ filled }) => (
 );
 
 const NewsItem = (props) => {
-  const { title, description, imageUrl, newsUrl, author, date, source, isSaved, onBookmark, article, onRead } = props;
+  const { title, description, imageUrl, newsUrl, author, date, source, isSaved, onBookmark, article, onRead,category } = props;
 
   const [showModal, setShowModal] = useState(false);
   const [summary, setSummary] = useState('');
@@ -74,14 +73,34 @@ const NewsItem = (props) => {
 
           <div className="article-actions">
             <a
-              rel="noreferrer"
-              href={newsUrl}
-              target="_blank"
-              className="btn btn-dark btn-readmore"
-              onClick={() => onRead && onRead()}
-            >
-              Read More
-            </a>
+            rel="noreferrer"
+  href={newsUrl}
+  target="_blank"
+  className="btn btn-dark btn-readmore"
+  onClick={() => {
+    onRead && onRead();
+    // Track read for recommendations
+    const token = localStorage.getItem('newzapp_token');
+    if (token) {
+      fetch('/api/history/read', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title, description, url: newsUrl,
+          urlToImage: imageUrl,
+          publishedAt: date,
+          source: { name: source },
+          category: category || ''
+        })
+      }).catch(() => {}); // fire and forget, never block the user
+    }
+  }}
+>
+  Read More
+</a>
             <button
               className={`icon-action-btn ${isSaved ? 'is-saved' : ''}`}
               onClick={() => onBookmark(article)}

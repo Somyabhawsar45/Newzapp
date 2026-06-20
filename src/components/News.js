@@ -117,6 +117,7 @@ const buildUrl = (pageNum) => {
                                         date={element.publishedAt}
                                         source={element.source.name}
                                         article={element}
+                                        category={props.category}        // ← add this line
                                         isSaved={props.savedArticles?.some(a => a.url === element.url)}
                                         onBookmark={props.toggleBookmark}
                                     />
