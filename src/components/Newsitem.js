@@ -42,7 +42,6 @@ const NewsItem = (props) => {
     setSummarizing(false);
   };
 
-  // Single shared handler for tracking a "read" — used by image, title, and Read More clicks
   const trackRead = () => {
     onRead && onRead();
     const token = localStorage.getItem('newzapp_token');
@@ -60,7 +59,7 @@ const NewsItem = (props) => {
           source: { name: source },
           category: category || ''
         })
-      }).catch(() => {}); // fire and forget, never block the user
+      }).catch(() => {});
     }
   };
 
