@@ -7,7 +7,16 @@ console.log('MONGO URL:', process.env.MONGODB_URL);
 console.log('GNEWS KEY:', process.env.GNEWS_API_KEY);
 
 const app = express();
-app.use(cors({ origin: 'https://newzapp-nine.vercel.app' }))
+const allowedOrigins = ['https://newzapp-nine.vercel.app', 'http://localhost:3000'];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+}));
 app.use(express.json()); // needed for POST body parsing
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URL)
