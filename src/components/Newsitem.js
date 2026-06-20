@@ -85,7 +85,7 @@ const NewsItem = (props) => {
         </a>
 
         <div className="card-body d-flex flex-column">
-          
+          <a
             href={newsUrl}
             target="_blank"
             rel="noreferrer"
@@ -102,7 +102,7 @@ const NewsItem = (props) => {
           </p>
 
           <div className="article-actions">
-            
+            <a
               rel="noreferrer"
               href={newsUrl}
               target="_blank"
