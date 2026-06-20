@@ -218,5 +218,50 @@ app.get('/api/news', async (req, res) => {
     });
   }
 });
+// ─── AI SUMMARIZE ───────────────────────────────────────────
+app.post('/api/summarize', async (req, res) => {
+  const { title, description } = req.body;
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!title && !description) {
+    return res.status(400).json({ summary: 'No content to summarize.' });
+  }
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: `Summarize this news article in exactly 3 bullet points starting with •. Be concise.
+
+Title: ${title}
+Description: ${description}`
+        }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('Groq error:', data.error);
+      return res.status(500).json({ summary: 'AI service unavailable.' });
+    }
+
+    const summary = data.choices[0].message.content;
+    res.json({ summary });
+
+  } catch (err) {
+    console.error('Summarize error:', err);
+    res.status(500).json({ summary: 'Could not generate summary.' });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
