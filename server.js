@@ -3,8 +3,6 @@ const cors = require('cors');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
-console.log('MONGO URL:', process.env.MONGODB_URL);
-console.log('GNEWS KEY:', process.env.GNEWS_API_KEY);
 
 const app = express();
 const allowedOrigins = ['https://newzapp-nine.vercel.app', 'http://localhost:3000'];

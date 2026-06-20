@@ -46,8 +46,8 @@ const buildUrl = (pageNum) => {
 
     useEffect(() => {
         document.title = props.query
-            ? `Search: ${props.query} - NewsHub`
-            : `${capitalizeFirstLetter(props.category)} - NewsHub`;
+            ? `Search: ${props.query} - NewsSync`
+            : `${capitalizeFirstLetter(props.category)} - NewsSync`;
         setPage(1);
         updateNews();
         // eslint-disable-next-line
