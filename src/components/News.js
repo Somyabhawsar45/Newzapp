@@ -10,16 +10,18 @@ const News = (props) => {
     const [page, setPage] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
     const [error, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const capitalizeFirstLetter = (string) =>
         string.charAt(0).toUpperCase() + string.slice(1);
 
-const buildUrl = (pageNum) => {
-    if (props.query && props.query.trim() !== '') {
-        return `/api/news?q=${encodeURIComponent(props.query)}&page=${pageNum}&pageSize=${props.pageSize}`;
-    }
-    return `/api/news?country=${props.country}&category=${props.category}&page=${pageNum}&pageSize=${props.pageSize}`;
-};
+    const buildUrl = (pageNum) => {
+        if (props.query && props.query.trim() !== '') {
+            return `/api/news?q=${encodeURIComponent(props.query)}&page=${pageNum}&pageSize=${props.pageSize}`;
+        }
+        return `/api/news?country=${props.country}&category=${props.category}&page=${pageNum}&pageSize=${props.pageSize}`;
+    };
+
     const updateNews = async () => {
         props.setProgress(10);
         setError(false);
@@ -31,12 +33,13 @@ const buildUrl = (pageNum) => {
             const parsedData = await data.json();
             props.setProgress(70);
             if (parsedData.status === 'error' || !parsedData.articles) {
-                throw new Error(parsedData.message || 'Failed to fetch news');
+                throw new Error(parsedData.friendlyMessage || parsedData.message || 'Failed to fetch news');
             }
             setArticles(parsedData.articles);
             setTotalResults(parsedData.totalResults || 0);
         } catch (err) {
             setError(true);
+            setErrorMessage(err.message || 'Something went wrong fetching news.');
             setArticles([]);
         } finally {
             setLoading(false);
@@ -53,26 +56,26 @@ const buildUrl = (pageNum) => {
         // eslint-disable-next-line
     }, [props.query, props.category]);
 
-   const fetchMoreData = async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const nextPage = page + 1;
-    const url = buildUrl(nextPage);
-    setPage(nextPage);
-    try {
-        const data = await fetch(url);
-        const parsedData = await data.json();
-        if (parsedData.status === 'error') return;
-        
-        // Filter out duplicates before adding
-        const existingUrls = new Set(articles.map(a => a.url));
-        const newArticles = (parsedData.articles || []).filter(a => !existingUrls.has(a.url));
-        
-        setArticles(prev => [...prev, ...newArticles]);
-        setTotalResults(parsedData.totalResults || 0);
-    } catch (err) {
-        // silently ignore
-    }
-};
+    const fetchMoreData = async () => {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const nextPage = page + 1;
+        const url = buildUrl(nextPage);
+        setPage(nextPage);
+        try {
+            const data = await fetch(url);
+            const parsedData = await data.json();
+            if (parsedData.status === 'error') return;
+
+            // Filter out duplicates before adding
+            const existingUrls = new Set(articles.map(a => a.url));
+            const newArticles = (parsedData.articles || []).filter(a => !existingUrls.has(a.url));
+
+            setArticles(prev => [...prev, ...newArticles]);
+            setTotalResults(parsedData.totalResults || 0);
+        } catch (err) {
+            // silently ignore
+        }
+    };
 
     return (
         <>
@@ -87,7 +90,7 @@ const buildUrl = (pageNum) => {
 
             {!loading && error && (
                 <div className="empty-state">
-                    ⚠️ Something went wrong fetching news. Please try again later.
+                    ⚠️ {errorMessage}
                 </div>
             )}
 
@@ -117,7 +120,7 @@ const buildUrl = (pageNum) => {
                                         date={element.publishedAt}
                                         source={element.source.name}
                                         article={element}
-                                        category={props.category}        // ← add this line
+                                        category={props.category}
                                         isSaved={props.savedArticles?.some(a => a.url === element.url)}
                                         onBookmark={props.toggleBookmark}
                                     />
@@ -147,6 +150,5 @@ News.propTypes = {
     savedArticles: PropTypes.array,
     toggleBookmark: PropTypes.func,
 };
-
 
 export default News;
