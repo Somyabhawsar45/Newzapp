@@ -7,7 +7,7 @@ console.log('MONGO URL:', process.env.MONGODB_URL);
 console.log('GNEWS KEY:', process.env.GNEWS_API_KEY);
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: 'https://newzapp-nine.vercel.app' }))
 app.use(express.json()); // needed for POST body parsing
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URL)
