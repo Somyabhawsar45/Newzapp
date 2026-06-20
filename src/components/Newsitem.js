@@ -1,4 +1,7 @@
 import React, { useState } from 'react'
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+
 const BookmarkIcon = ({ filled }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
@@ -6,16 +9,11 @@ const BookmarkIcon = ({ filled }) => (
 );
 
 const NewsItem = (props) => {
-  const { title, description, imageUrl, newsUrl, author, date, source, isSaved, onBookmark, article, onRead,category } = props;
+  const { title, description, imageUrl, newsUrl, author, date, source, isSaved, onBookmark, article, onRead, category } = props;
 
   const [showModal, setShowModal] = useState(false);
   const [summary, setSummary] = useState('');
   const [summarizing, setSummarizing] = useState(false);
-
-  const getReadingTime = (text) => {
-    if (!text) return 1;
-    return Math.max(1, Math.ceil(text.trim().split(/\s+/).length / 50));
-  };
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -31,7 +29,7 @@ const NewsItem = (props) => {
     if (summary) return;
     setSummarizing(true);
     try {
-      const response = await fetch('/api/summarize', {
+      const response = await fetch(`${BACKEND_URL}/api/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, description })
@@ -44,45 +42,12 @@ const NewsItem = (props) => {
     setSummarizing(false);
   };
 
-  return (
-    <div className="my-3">
-      <div className="card h-100">
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'absolute', right: '0' }}>
-          <span className="badge rounded-pill bg-danger">{source}</span>
-        </div>
-
-        <img
-          src={imageUrl || "https://placehold.co/400x200?text=No+Image"}
-          className="card-img-top"
-          alt="news"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = "https://placehold.co/400x200?text=No+Image";
-          }}
-        />
-
-        <div className="card-body d-flex flex-column">
-          <h5 className="card-title">{title}</h5>
-          <p className="card-text">{description}</p>
-          <p className="card-text">
-            <small className="text-muted">
-              By {author || "Unknown"} on {new Date(date).toGMTString()} · {getReadingTime(description)} min read
-            </small>
-          </p>
-
-          <div className="article-actions">
-            <a
-            rel="noreferrer"
-  href={newsUrl}
-  target="_blank"
-  className="btn btn-dark btn-readmore"
-  onClick={() => {
+  // Single shared handler for tracking a "read" — used by image, title, and Read More clicks
+  const trackRead = () => {
     onRead && onRead();
-    // Track read for recommendations
     const token = localStorage.getItem('newzapp_token');
     if (token) {
-      fetch('/api/history/read', {
+      fetch(`${BACKEND_URL}/api/history/read`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,10 +62,56 @@ const NewsItem = (props) => {
         })
       }).catch(() => {}); // fire and forget, never block the user
     }
-  }}
->
-  Read More
-</a>
+  };
+
+  return (
+    <div className="my-3">
+      <div className="card h-100">
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', position: 'absolute', right: '0' }}>
+          <span className="badge rounded-pill bg-danger">{source}</span>
+        </div>
+
+        <a href={newsUrl} target="_blank" rel="noreferrer" style={{ display: 'block' }} onClick={trackRead}>
+          <img
+            src={imageUrl || "https://placehold.co/400x200?text=No+Image"}
+            className="card-img-top"
+            alt="news"
+            style={{ cursor: 'pointer' }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "https://placehold.co/400x200?text=No+Image";
+            }}
+          />
+        </a>
+
+        <div className="card-body d-flex flex-column">
+          
+            href={newsUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{ textDecoration: 'none', color: 'inherit' }}
+            onClick={trackRead}
+          >
+            <h5 className="card-title" style={{ cursor: 'pointer' }}>{title}</h5>
+          </a>
+          <p className="card-text">{description}</p>
+          <p className="card-text">
+            <small className="text-muted">
+              By {author || "Unknown"} on {new Date(date).toGMTString()}
+            </small>
+          </p>
+
+          <div className="article-actions">
+            
+              rel="noreferrer"
+              href={newsUrl}
+              target="_blank"
+              className="btn btn-dark btn-readmore"
+              onClick={trackRead}
+            >
+              Read More
+            </a>
             <button
               className={`icon-action-btn ${isSaved ? 'is-saved' : ''}`}
               onClick={() => onBookmark(article)}
