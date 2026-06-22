@@ -73,13 +73,13 @@ const NewsItem = (props) => {
 
         <a href={newsUrl} target="_blank" rel="noreferrer" style={{ display: 'block' }} onClick={trackRead}>
           <img
-            src={imageUrl || "https://placehold.co/400x200?text=No+Image"}
+            src={imageUrl || "https://placehold.co/400x200/1a1a2e/6366f1?text=NewsSync"}
             className="card-img-top"
             alt="news"
             style={{ cursor: 'pointer' }}
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = "https://placehold.co/400x200?text=No+Image";
+              e.target.src = "https://placehold.co/400x200/1a1a2e/6366f1?text=NewsSync";
             }}
           />
         </a>
