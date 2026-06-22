@@ -110,6 +110,10 @@ export default function ForYou() {
           --fy-heading: #ffffff;
           --fy-hr: #2a2a4a;
         }
+
+        .fy-scroll::-webkit-scrollbar {
+  display: none;
+}
       `}</style>
 
       <div className="container" style={{ marginTop: '80px', marginBottom: '-80px' }}>
@@ -130,7 +134,7 @@ export default function ForYou() {
           </h2>
         </div>
 
-        <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px' }}>
+        <div className="fy-scroll" style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {recs.map((article, i) => (
             <a
               key={article.url || i}
