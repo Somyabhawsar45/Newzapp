@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Newsitem from './Newsitem';
 import Skeleton from './Skeleton';
 import PropTypes from 'prop-types';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { useAuth } from '../context/AuthContext';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
 const News = (props) => {
     const [articles, setArticles] = useState([]);
@@ -11,9 +14,70 @@ const News = (props) => {
     const [totalResults, setTotalResults] = useState(0);
     const [error, setError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [savedUrls, setSavedUrls] = useState(new Set());
+
+    const { user, token } = useAuth();
 
     const capitalizeFirstLetter = (string) =>
         string.charAt(0).toUpperCase() + string.slice(1);
+
+    // Fetch saved article URLs for bookmark state
+    const fetchSavedUrls = useCallback(async () => {
+        if (!user || !token) return;
+        try {
+            const res = await fetch(`${BACKEND_URL}/api/saved`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            const urls = new Set((data.savedArticles || []).map(a => a.url));
+            setSavedUrls(urls);
+        } catch {
+            // silently ignore
+        }
+    }, [user, token]);
+
+    useEffect(() => { fetchSavedUrls(); }, [fetchSavedUrls]);
+
+    const toggleBookmark = async (article) => {
+        if (!user || !token) return;
+        const isSaved = savedUrls.has(article.url);
+
+        // Optimistic update
+        setSavedUrls(prev => {
+            const next = new Set(prev);
+            isSaved ? next.delete(article.url) : next.add(article.url);
+            return next;
+        });
+
+        try {
+            if (isSaved) {
+                await fetch(`${BACKEND_URL}/api/saved/remove`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ url: article.url })
+                });
+            } else {
+                await fetch(`${BACKEND_URL}/api/saved/save`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ article })
+                });
+            }
+        } catch {
+            // Revert on failure
+            setSavedUrls(prev => {
+                const next = new Set(prev);
+                isSaved ? next.add(article.url) : next.delete(article.url);
+                return next;
+            });
+        }
+    };
 
     const buildUrl = (pageNum) => {
         if (props.query && props.query.trim() !== '') {
@@ -65,33 +129,28 @@ const News = (props) => {
             const data = await fetch(url);
             const parsedData = await data.json();
             if (parsedData.status === 'error') return;
-
-            // Filter out duplicates before adding
             const existingUrls = new Set(articles.map(a => a.url));
             const newArticles = (parsedData.articles || []).filter(a => !existingUrls.has(a.url));
-
             setArticles(prev => [...prev, ...newArticles]);
             setTotalResults(parsedData.totalResults || 0);
-        } catch (err) {
+        } catch {
             // silently ignore
         }
     };
 
     return (
         <>
-           <div className="nh-page-header">
-  <p className="nh-eyebrow">{props.query ? 'Search' : capitalizeFirstLetter(props.category)}</p>
-  <h1 className="nh-page-title">
-    {props.query ? `Results for "${props.query}"` : `Top ${capitalizeFirstLetter(props.category)} headlines`}
-  </h1>
-</div>
+            <div className="nh-page-header">
+                <p className="nh-eyebrow">{props.query ? 'Search' : capitalizeFirstLetter(props.category)}</p>
+                <h1 className="nh-page-title">
+                    {props.query ? `Results for "${props.query}"` : `Top ${capitalizeFirstLetter(props.category)} headlines`}
+                </h1>
+            </div>
 
             {loading && <Skeleton count={props.pageSize} />}
 
             {!loading && error && (
-                <div className="empty-state">
-                    ⚠️ {errorMessage}
-                </div>
+                <div className="empty-state">⚠️ {errorMessage}</div>
             )}
 
             {!loading && !error && articles.length === 0 && (
@@ -121,8 +180,8 @@ const News = (props) => {
                                         source={element.source.name}
                                         article={element}
                                         category={props.category}
-                                        isSaved={props.savedArticles?.some(a => a.url === element.url)}
-                                        onBookmark={props.toggleBookmark}
+                                        isSaved={savedUrls.has(element.url)}
+                                        onBookmark={toggleBookmark}
                                     />
                                 </div>
                             ))}
@@ -147,8 +206,6 @@ News.propTypes = {
     category: PropTypes.string,
     query: PropTypes.string,
     setProgress: PropTypes.func.isRequired,
-    savedArticles: PropTypes.array,
-    toggleBookmark: PropTypes.func,
 };
 
 export default News;

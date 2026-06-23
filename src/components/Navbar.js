@@ -77,7 +77,7 @@ const iconBtnStyle = (active) => ({
   padding: 0,
 });
 
-const NavBar = ({ savedCount, onLoginClick, country, onCountryChange }) => {
+const NavBar = ({  onLoginClick, country, onCountryChange }) => {
   const { user, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -213,12 +213,7 @@ const NavBar = ({ savedCount, onLoginClick, country, onCountryChange }) => {
                 <span style={{ color: '#6366f1', display: 'inline-flex', verticalAlign: 'middle', marginRight: '4px' }}>
                   <BookmarkIcon filled={isActive('/saved')} />
                 </span>
-                Saved {savedCount > 0 && (
-                  <span className="badge rounded-pill ms-1"
-                    style={{ backgroundColor: '#6366f1', fontSize: '0.7rem' }}>
-                    {savedCount}
-                  </span>
-                )}
+                Saved 
               </Link>
             </li>
           </ul>

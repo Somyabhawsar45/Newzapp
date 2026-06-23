@@ -3,6 +3,9 @@ const cors = require('cors');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
+const savedRoutes = require('./routes/saved');
+
+
 
 const app = express();
 const allowedOrigins = ['https://newzapp-nine.vercel.app', 'http://localhost:3000'];
@@ -23,6 +26,7 @@ mongoose.connect(process.env.MONGODB_URL)
 
 // Auth routes
 app.use('/api/auth', authRoutes);
+app.use('/api/saved', savedRoutes);
 const historyRoutes = require('./routes/history');
 app.use('/api/history', historyRoutes);
 

@@ -16,6 +16,7 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   savedArticles: [ArticleSchema],
   readHistory: [{ ...ArticleSchema, readAt: Date }],
+  savedArticles: { type: Array, default: [] }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

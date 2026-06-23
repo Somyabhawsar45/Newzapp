@@ -1,70 +1,127 @@
-# Getting Started with Create React App
+# NewsSync 📰
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> A full-stack AI-powered news aggregator with personalised recommendations, real-time trending, and Groq-powered article summarization.
 
-## Available Scripts
+🔗 **Live Demo:** [newzapp-nine.vercel.app](https://newzapp-nine.vercel.app)
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **✨ AI Summarization** — Summarize any article in 3 bullet points using Groq (LLaMA 3.1 8B). One click, instant insight.
+- **🧠 Personalised For You** — ML-based recommendation engine (TF-IDF + cosine similarity) built with FastAPI. Learns from your reading history.
+- **🔥 Trending Dashboard** — Real-time trending topics and category breakdowns from aggregated read history via MongoDB.
+- **🔖 Saved Articles** — Bookmark articles persisted per user in MongoDB, synced across devices and sessions.
+- **🔐 JWT Authentication** — Secure signup/login with bcrypt password hashing and 7-day JWT tokens.
+- **🌍 Region Toggle** — Switch between Global (US) and India news feeds.
+- **🔍 Debounced Search** — Search across all news with 500ms debounce to minimise API calls.
+- **🌙 Dark Mode** — Persistent dark/light mode toggle.
+- **♾️ Infinite Scroll** — Seamless pagination with deduplication.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Tech Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, React Router v6, Context API |
+| Backend | Node.js, Express, MongoDB Atlas, Mongoose |
+| Auth | JWT, bcryptjs |
+| ML Service | FastAPI, scikit-learn (TF-IDF + cosine similarity) |
+| APIs | GNews API, Groq API (LLaMA 3.1 8B) |
+| Deployment | Vercel (frontend), dotenvx |
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Architecture
+┌──────────────────────────────────────┐
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+│         React Frontend               │
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+│    newzapp-nine.vercel.app           │
 
-### `npm run eject`
+└────────────┬─────────────┬───────────┘
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+│             │
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+▼             ▼
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+┌────────────────┐  ┌─────────────────────┐
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+│ Node/Express   │  │ FastAPI Recommender  │
 
-## Learn More
+│ (port 5000)    │  │ (port 8000)          │
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+│                │  │ TF-IDF + Cosine      │
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+│ Auth, News,    │  │ Similarity on user   │
 
-### Code Splitting
+│ Saved, History,│  │ read history         │
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+│ Trending, AI   │  └─────────────────────┘
 
-### Analyzing the Bundle Size
+└──────┬─────────┘
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+│
 
-### Making a Progressive Web App
+▼
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+┌──────────────┐    ┌─────────────────────┐
 
-### Advanced Configuration
+│ MongoDB Atlas│    │ GNews API           │
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+│              │    │ Groq API            │
 
-### Deployment
+│ Users,       │    └─────────────────────┘
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+│ readHistory, │
 
-### `npm run build` fails to minify
+│ savedArticles│
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+└──────────────┘
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Node.js v18+, Python 3.9+, MongoDB Atlas account, GNews API key, Groq API key
+
+### Install & Run
+
+```bash
+# Clone
+git clone https://github.com/Somyabhawsar45/newzapp.git
+cd newzapp
+
+# Install dependencies
+npm install
+
+# Terminal 1 — frontend + backend
+npm run dev
+
+# Terminal 2 — ML recommender
+cd recommender
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+---
+
+## Key Implementation Details
+
+**AI Summarization** — The ✨ button on every card calls Groq's LLaMA 3.1 8B via the backend and returns a 3-bullet summary. Cached in component state to avoid re-fetching.
+
+**ML Recommendations** — FastAPI fetches the user's read history from MongoDB, builds a TF-IDF matrix, and scores candidate articles from 7 categories using cosine similarity. Gracefully falls back if history is insufficient.
+
+**Trending Algorithm** — Aggregates read history across all users with a configurable time window (24h / 7d / all time). Surfaces keywords by article spread, not raw frequency, to avoid single-article spikes.
+
+**Rate Limit Handling** — GNews responses cached server-side for 6 hours. Automatically falls back to a backup API key if the primary hits its daily limit.
+
+------
+
+## Author
+
+**Somya Bhawsar** — IET DAVV Indore (2027)
+
+*Built to demonstrate full-stack development, ML integration, and production-ready API design.*
