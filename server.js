@@ -4,7 +4,42 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const savedRoutes = require('./routes/saved');
+const redis = require('redis');
 
+// ─── CACHE SETUP ─────────────────────────────────────────────
+const cache = new Map();
+const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours
+const requestTimestamps = new Map();
+
+let redisClient = null;
+let isRedisConnected = false;
+
+(async () => {
+  try {
+    const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+    const isTLS = redisUrl.startsWith('rediss://');
+
+    redisClient = redis.createClient({
+      url: redisUrl,
+      socket: isTLS ? { tls: true, rejectUnauthorized: false } : undefined
+    });
+
+    redisClient.on('error', (err) => {
+      console.warn('Redis client error, falling back to local cache:', err.message);
+      isRedisConnected = false;
+    });
+
+    redisClient.on('connect', () => {
+      console.log('Redis connected successfully');
+      isRedisConnected = true;
+    });
+
+    await redisClient.connect();
+  } catch (err) {
+    console.warn('Redis connection failed, falling back to local cache:', err.message);
+    isRedisConnected = false;
+  }
+})();
 
 
 const app = express();
@@ -39,8 +74,8 @@ app.get('/api/trending', async (req, res) => {
     const range = req.query.range || '7d';
     const now = Date.now();
     const rangeMs = range === '24h' ? 24 * 60 * 60 * 1000
-                  : range === '7d'  ? 7 * 24 * 60 * 60 * 1000
-                  : null; // 'all' = no cutoff
+      : range === '7d' ? 7 * 24 * 60 * 60 * 1000
+        : null; // 'all' = no cutoff
 
     const users = await User.find({}, 'readHistory');
 
@@ -51,13 +86,13 @@ app.get('/api/trending', async (req, res) => {
     let totalReadsInRange = 0;
     let mostRecentRead = null;
 
-    const stopwords = new Set(['the','a','an','and','or','but','in','on','at','to','for',
-      'of','with','by','from','is','was','are','were','be','been','has','have','had',
-      'it','its','this','that','these','those','as','up','out','about','into','after',
-      'he','she','they','we','you','i','his','her','their','our','my','new','says',
-      'will','could','would','should','may','can','not','no','what','how','who','when',
-      'than','more','over','said','before','during','while','just','also','one','two',
-      'amid','set','top','why','now']);
+    const stopwords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+      'of', 'with', 'by', 'from', 'is', 'was', 'are', 'were', 'be', 'been', 'has', 'have', 'had',
+      'it', 'its', 'this', 'that', 'these', 'those', 'as', 'up', 'out', 'about', 'into', 'after',
+      'he', 'she', 'they', 'we', 'you', 'i', 'his', 'her', 'their', 'our', 'my', 'new', 'says',
+      'will', 'could', 'would', 'should', 'may', 'can', 'not', 'no', 'what', 'how', 'who', 'when',
+      'than', 'more', 'over', 'said', 'before', 'during', 'while', 'just', 'also', 'one', 'two',
+      'amid', 'set', 'top', 'why', 'now']);
 
     for (const user of users) {
       for (const article of (user.readHistory || [])) {
@@ -106,8 +141,8 @@ app.get('/api/trending', async (req, res) => {
     }
 
     const trendingTopics = Object.entries(wordCount)
-.filter(([word, count]) => count >= 1)    
-  .sort((a, b) => b[1] - a[1])
+      .filter(([word, count]) => count >= 1)
+      .sort((a, b) => b[1] - a[1])
       .slice(0, 15)
       .map(([word, count]) => ({ word, count, articleSpread: wordArticleSet[word].size }));
 
@@ -133,11 +168,6 @@ app.get('/api/trending', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-const cache = new Map();
-const CACHE_TTL = 6*60 * 60 * 1000; // 6 hours
-const requestTimestamps = new Map();
-
-// ─── NEWS API ───────────────────────────────────────────────
 // ─── NEWS API ───────────────────────────────────────────────
 async function fetchFromGNews(url, apiKey) {
   const finalUrl = url.replace('TOKEN_PLACEHOLDER', apiKey);
@@ -153,13 +183,30 @@ app.get('/api/news', async (req, res) => {
 
   const cacheKey = JSON.stringify(req.query);
 
-  const cached = cache.get(cacheKey);
-  if (cached && Date.now() - cached.time < CACHE_TTL) {
-    return res.status(200).json(cached.data);
+  let cachedData = null;
+  if (isRedisConnected && redisClient) {
+    try {
+      const val = await redisClient.get(cacheKey);
+      if (val) {
+        cachedData = JSON.parse(val);
+      }
+    } catch (err) {
+      console.error('Redis get error:', err);
+    }
+  } else {
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.time < CACHE_TTL) {
+      cachedData = cached.data;
+    }
+  }
+
+  if (cachedData) {
+    return res.status(200).json(cachedData);
   }
 
   const lastRequest = requestTimestamps.get(cacheKey);
   if (lastRequest && Date.now() - lastRequest < 10000) {
+    const cached = cache.get(cacheKey);
     if (cached) return res.status(200).json(cached.data);
     return res.status(429).json({
       status: 'error',
@@ -188,6 +235,7 @@ app.get('/api/news', async (req, res) => {
     }
 
     if (data.errors) {
+      const cached = cache.get(cacheKey);
       if (cached) return res.status(200).json(cached.data);
       return res.status(429).json({
         status: 'error',
@@ -210,10 +258,21 @@ app.get('/api/news', async (req, res) => {
       }))
     };
 
-    cache.set(cacheKey, { data: normalized, time: Date.now() });
+    if (isRedisConnected && redisClient) {
+      try {
+        await redisClient.set(cacheKey, JSON.stringify(normalized), {
+          EX: 6 * 60 * 60 // 6 hours
+        });
+      } catch (err) {
+        console.error('Redis set error:', err);
+      }
+    } else {
+      cache.set(cacheKey, { data: normalized, time: Date.now() });
+    }
     res.status(200).json(normalized);
 
   } catch (err) {
+    const cached = cache.get(cacheKey);
     if (cached) return res.status(200).json(cached.data);
     res.status(500).json({
       status: 'error',
@@ -239,7 +298,7 @@ app.post('/api/summarize', async (req, res) => {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: "llama-3.3-70b-versatile",
         max_tokens: 300,
         messages: [{
           role: 'user',
@@ -254,16 +313,108 @@ Description: ${description}`
     const data = await response.json();
 
     if (data.error) {
-      console.error('Groq error:', data.error);
-      return res.status(500).json({ summary: 'AI service unavailable.' });
+      console.error('Groq summarize error (full):', JSON.stringify(data.error));
+      return res.status(500).json({ summary: `AI error: ${data.error.message || 'unavailable'}` });
     }
 
     const summary = data.choices[0].message.content;
     res.json({ summary });
 
   } catch (err) {
-    console.error('Summarize error:', err);
+    console.error('Summarize error:', err.message);
     res.status(500).json({ summary: 'Could not generate summary.' });
+  }
+});
+
+// ─── AI PERSPECTIVE ───────────────────────────────────────────
+app.post('/api/perspective', async (req, res) => {
+  const { title, description } = req.body;
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!title && !description) {
+    return res.status(400).json({ perspective: 'No content to analyze.' });
+  }
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: `Analyze this news article and provide exactly 3 bullet points (starting with •) presenting an alternative perspective. Each bullet point must be maximum 15 words. Be concise.
+
+Title: ${title}
+Description: ${description}`
+        }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('Groq perspective error (full):', JSON.stringify(data.error));
+      return res.status(500).json({ perspective: `AI error: ${data.error.message || 'unavailable'}` });
+    }
+
+    const perspective = data.choices[0].message.content;
+    res.json({ perspective });
+
+  } catch (err) {
+    console.error('Perspective error:', err.message);
+    res.status(500).json({ perspective: 'Could not generate alternative perspective.' });
+  }
+});
+
+// ─── ASK ARTICLE Q&A ───────────────────────────────────────────
+app.post('/api/ask-article', async (req, res) => {
+  const { title, description, question } = req.body;
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!question) {
+    return res.status(400).json({ answer: 'Please provide a question.' });
+  }
+
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: `You are a helpful news assistant. Answer the user's question based strictly on the context of the news article provided below. If the answer cannot be found or inferred from this context, state that clearly but politely. Keep the response concise (maximum 2-3 sentences).
+
+Article Title: ${title}
+Article Description: ${description}
+
+User's Question: ${question}`
+        }]
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      console.error('Groq ask-article error (full):', JSON.stringify(data.error));
+      return res.status(500).json({ answer: `AI error: ${data.error.message || 'unavailable'}` });
+    }
+
+    const answer = data.choices[0].message.content;
+    res.json({ answer });
+
+  } catch (err) {
+    console.error('Ask Article error:', err.message);
+    res.status(500).json({ answer: 'Could not answer the question.' });
   }
 });
 

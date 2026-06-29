@@ -62,21 +62,22 @@ export default function ForYou() {
     } finally {
       setLoading(false);
     }
-  }, [user, token]);
+  }, [user, token])
 
   useEffect(() => { fetchRecs(); }, [fetchRecs]);
 
   if (!user) return null;
 
   if (status === 'no_history') return (
-    <div className="container mt-4">
+    <div className="container" style={{ marginTop: '16px' }}>
       <div style={{
-        background: 'var(--fy-card-bg)',
-        border: '1px solid var(--fy-card-border)',
+        background: '#1c2128',
+        border: '1px solid #30363d',
         borderRadius: '12px', padding: '20px 24px',
-        color: 'var(--nh-text-muted)', fontSize: '0.9rem'
+        color: '#e2e8f0', fontSize: '0.9rem',
+        display: 'flex', alignItems: 'center', gap: '8px'
       }}>
-        🧠 <strong style={{ color: '#6366f1' }}>For You</strong> — Read a few articles to unlock personalised recommendations!
+        🧠 <span><strong style={{ color: '#6366f1' }}>For You</strong> — Read a few articles to unlock personalised recommendations!</span>
       </div>
     </div>
   );
@@ -84,8 +85,8 @@ export default function ForYou() {
   if (status === 'error' || status === 'idle') return null;
 
   if (status === 'loading') return (
-    <div className="container mt-4">
-      <div style={{ color: '#6366f1', fontSize: '0.9rem', padding: '8px 0' }}>
+    <div className="container" style={{ marginTop: '80px' }}>
+      <div style={{ color: '#cbd5e1', fontSize: '0.9rem', padding: '8px 0' }}>
         🧠 Building your personalised feed...
       </div>
     </div>
@@ -116,7 +117,7 @@ export default function ForYou() {
 }
       `}</style>
 
-      <div className="container" style={{ marginTop: '80px', marginBottom: '-80px' }}>
+      <div className="container" style={{ marginTop: '24px', marginBottom: '-80px' }}>
         <div style={{ marginBottom: '16px', paddingTop: '8px' }}>
           <p style={{
             color: '#6366f1', fontSize: '0.8rem', fontWeight: '600',
