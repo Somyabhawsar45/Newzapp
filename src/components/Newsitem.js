@@ -13,7 +13,7 @@ const NewsItem = (props) => {
 
   const [showModal, setShowModal] = useState(false);
   const [activeTab, setActiveTab] = useState('summary');
-  
+
   const [summary, setSummary] = useState('');
   const [summaryLoaded, setSummaryLoaded] = useState(false);
   const [summarizing, setSummarizing] = useState(false);
@@ -79,7 +79,7 @@ const NewsItem = (props) => {
     const userQ = question;
     setQuestion('');
     setAsking(true);
-    
+
     // Add user question with a placeholder response
     setChatHistory(prev => [...prev, { q: userQ, a: 'Thinking...' }]);
 
@@ -126,7 +126,7 @@ const NewsItem = (props) => {
           source: { name: source },
           category: category || ''
         })
-      }).catch(() => {});
+      }).catch(() => { });
     }
   };
 
@@ -229,10 +229,10 @@ const NewsItem = (props) => {
             >✕</button>
             <h6 style={{ color: '#6366f1', marginBottom: '12px' }}>🤖 NewsSync AI Assistant</h6>
             <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '16px' }}>{title}</p>
-            
+
             {/* Tab Navigation */}
             <div style={{ display: 'flex', borderBottom: '1px solid #2d333b', marginBottom: '16px' }}>
-              <button 
+              <button
                 onClick={() => setActiveTab('summary')}
                 style={{
                   flex: 1, padding: '10px', background: 'none', border: 'none',
@@ -242,7 +242,7 @@ const NewsItem = (props) => {
                   cursor: 'pointer'
                 }}
               >✨ Summary</button>
-              <button 
+              <button
                 onClick={() => { setActiveTab('perspective'); handlePerspective(); }}
                 style={{
                   flex: 1, padding: '10px', background: 'none', border: 'none',
@@ -252,7 +252,7 @@ const NewsItem = (props) => {
                   cursor: 'pointer'
                 }}
               >⚖️ Other Side</button>
-              <button 
+              <button
                 onClick={() => setActiveTab('ask')}
                 style={{
                   flex: 1, padding: '10px', background: 'none', border: 'none',
@@ -308,7 +308,7 @@ const NewsItem = (props) => {
                   )}
                 </div>
                 <form onSubmit={handleAsk} style={{ display: 'flex', gap: '8px' }}>
-                  <input 
+                  <input
                     type="text"
                     value={question}
                     onChange={e => setQuestion(e.target.value)}

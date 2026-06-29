@@ -77,7 +77,7 @@ const iconBtnStyle = (active) => ({
   padding: 0,
 });
 
-const NavBar = ({  onLoginClick, country, onCountryChange }) => {
+const NavBar = ({ onLoginClick, country, onCountryChange }) => {
   const { user, logout } = useAuth();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -213,7 +213,7 @@ const NavBar = ({  onLoginClick, country, onCountryChange }) => {
                 <span style={{ color: '#6366f1', display: 'inline-flex', verticalAlign: 'middle', marginRight: '4px' }}>
                   <BookmarkIcon filled={isActive('/saved')} />
                 </span>
-                Saved 
+                Saved
               </Link>
             </li>
           </ul>
