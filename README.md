@@ -1,4 +1,6 @@
 # NewsSync 📰
+![License](https://img.shields.io/badge/License-MIT-green)
+![Status](https://img.shields.io/badge/Status-Live-brightgreen)
 
 > A full-stack AI-powered news aggregator with personalised recommendations, real-time trending, Redis caching, and Groq-powered interactive AI features.
 
@@ -104,7 +106,7 @@ REDIS_URL=rediss://your_upstash_redis_url
 
 ---
 
-## Key Implementation Details
+## 🧠 Engineering Decisions
 
 **Redis Caching** — News API responses cached in Upstash Redis for 6 hours using the query string as cache key. If Redis is down, falls back to an in-memory `Map` cache automatically — zero downtime.
 
