@@ -124,6 +124,12 @@ REDIS_URL=rediss://your_upstash_redis_url
 
 ---
 
+## Challenges Solved
+
+**GNews Rate Limiting** — The free tier's 100 requests/day cap was easy to exhaust with frequent testing across categories, regions, and search. Added a backup API key with automatic failover, plus a 6-hour Redis cache (with in-memory fallback) to cut real API calls dramatically — most repeat requests now serve from cache instead of hitting GNews at all.
+
+**Redis Availability** — Upstash Redis is a network dependency outside the app's control, so an in-memory `Map` fallback was built in to keep news serving uninterrupted if Redis is ever unreachable — zero downtime even if the cache layer itself goes down.
+
 ## Author
 
 **Somya Bhawsar** — IET DAVV Indore (2027)
