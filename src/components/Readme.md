@@ -1,5 +1,6 @@
 # NewsSync
 
+
 **NewsSync** is a full-stack live news aggregator with personalised recommendations, trending analytics, and a clean responsive UI.
 
 🔗 **Live Demo** → [newzapp-nine.vercel.app](https://newzapp-nine.vercel.app)
